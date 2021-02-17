@@ -1,8 +1,4 @@
 /*
-sender.c 
-*/
-
-/*
 References:
 https://www.codeproject.com/Questions/557011/UdjustplusUDPplussocketplusdataplusreceivepluswait
 */
@@ -21,6 +17,9 @@ https://www.codeproject.com/Questions/557011/UdjustplusUDPplussocketplusdataplus
 
 #define MAXBUFLEN 100
 
+
+// function to count number of digits in a number
+
 int count_digits(int x) {
 	int count =0;
 	while(x!=0) {
@@ -29,6 +28,8 @@ int count_digits(int x) {
 	}
 	return count;
 }
+
+
 
 int main(int argc, char *argv[]) {
 
@@ -49,13 +50,12 @@ int main(int argc, char *argv[]) {
 	struct addrinfo hints_sender, *servinfo_sender, *q;
 	int sd;
 
+	// initialize the sender socket
 	memset(&hints_sender, 0, sizeof(hints_sender));
 	hints_sender.ai_family = AF_UNSPEC;
 	hints_sender.ai_socktype = SOCK_DGRAM;
-	hints_sender.ai_flags = AI_PASSIVE;
 
-
-	if((sd = getaddrinfo(NULL, ReceiverPort, &hints_sender, &servinfo_sender)) != 0) {
+	if((sd = getaddrinfo("localhost", ReceiverPort, &hints_sender, &servinfo_sender)) != 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(sd));
 		return 1;
 	}
@@ -65,26 +65,31 @@ int main(int argc, char *argv[]) {
 			perror("sender: socket");
 			continue;
 		}
-
-		if(bind(sockfd_sender, q->ai_addr, q->ai_addrlen) == -1) {
-			close(sockfd_sender);
-			perror("sender: bind");
-			continue;
-		}
 		break;
 	}
 
 	if(q == NULL) {
-		fprintf(stderr, "sender: failed to bind socket\n");
-    return 2;
+		fprintf(stderr, "sender1: failed to bind socket\n");
+    exit(1);
 	}
 
 	// creating sockets for receiving messages from the receiver
-
 	int sockfd;
 	struct addrinfo hints, *servinfo, *p;
 	int rv;
 
+
+	//create a fd_set consisting of sockfd
+	fd_set master;
+	fd_set read_fds;
+	
+
+	// Time data structure
+	struct timeval tv;
+	fd_set readfds;
+
+
+	// initialize the receiver sockets
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_DGRAM;
@@ -115,19 +120,12 @@ int main(int argc, char *argv[]) {
 	}
 	freeaddrinfo(servinfo); 
 
-	//create a fd_set consisting of sockfd
-	fd_set master;
-	fd_set read_fds;
 	FD_ZERO(&read_fds);
 	FD_ZERO(&master);
 	FD_SET(sockfd, &master);
-
-	// Time data structure
-	struct timeval tv;
-	fd_set readfds;
 	tv.tv_sec = RetranmissionTimer;
 	tv.tv_usec = 0;
-
+	read_fds = master;
 	// initialize the packet sequence
 	int x = 1;
 
@@ -136,19 +134,25 @@ int main(int argc, char *argv[]) {
 	int numbytes;
 	char buf[MAXBUFLEN];
 
+
 	while(x <= NoOfPacketsToBeSent) {
+
 		// send the packet with packet sequence x
 		int sent_bytes;
 		char m[20];
 		sprintf(m, "Packet:%d", x);
 		m[7+count_digits(x)] = '\0';
+		printf("%s\n", m);
+		printf("%lu\n", strlen(m));
 		if((sent_bytes = sendto(sockfd_sender, m, strlen(m), 0, q->ai_addr, q->ai_addrlen)) == -1) {
 			perror("sender: sendto");
-				exit(1);
+			exit(1);
 		}
 
+		printf("Packet with sequence number %d sent\n", x);
+
+
 		// wait for the acknowledgement
-		read_fds = master;
 		struct timeval tv_temp = tv;
 		struct timeval tv_temp2;
 
@@ -160,7 +164,9 @@ int main(int argc, char *argv[]) {
 		label: 
    	t = clock();
    	tv_temp2 = tv_temp;
+
 		ret = select(sockfd+1, &readfds, NULL, NULL, &tv_temp);
+
 		tv_temp = tv_temp2;
 
 		t = clock() - t;
@@ -172,6 +178,7 @@ int main(int argc, char *argv[]) {
 		}
 		else if ( ret == 0 ) {
 			//timeout
+			printf("Restransmission timer of %d packet expired", x);
 		}
 		else if ( FD_ISSET( sockfd, &read_fds)) {
 			
@@ -181,27 +188,24 @@ int main(int argc, char *argv[]) {
 			}
 
 			// parse the received message and check the sequence number
-			strncpy(sequence, buf+15, numbytes);
-			sequence[numbytes] = '\0';
+			strncpy(sequence, buf+15, numbytes-15);
+			sequence[numbytes-15] = '\0';
 			seq = atoi(sequence);
 
 			// check if this is the acknowledgement of the recently sent packet
 			if(seq == x+1) {
 				x++;
+				printf("ACK of %d packet received", x);
 			}
 			else {
 				tv_temp.tv_sec = tv_temp.tv_sec- time_taken;
 				goto label;
+				printf("ACK of %d received and ignored", seq);
 			}
 		}
-
 	}
-
-
-	// close the sender sockets
+	// close the sockets
 	freeaddrinfo(servinfo_sender);
-	close(sockfd_sender);
-
-	// close the receiver sockets
 	close(sockfd);
+	close(sockfd_sender);
 } 
