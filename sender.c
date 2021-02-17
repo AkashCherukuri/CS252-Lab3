@@ -33,6 +33,13 @@ int count_digits(int x) {
 
 int main(int argc, char *argv[]) {
 
+	FILE *fp;
+	fp = fopen("sender.txt", "w");
+
+	if ( fp == NULL ) { 
+		printf( "sender.txt file failed to open." ) ; 
+	}
+	char data[1000];
 	//handling the command line arguments
 
 	if(argc!=5) {
@@ -142,16 +149,14 @@ int main(int argc, char *argv[]) {
 		char m[20];
 		sprintf(m, "Packet:%d", x);
 		m[7+count_digits(x)] = '\0';
-		printf("%s\n", m);
-		printf("%lu\n", strlen(m));
 		if((sent_bytes = sendto(sockfd_sender, m, strlen(m), 0, q->ai_addr, q->ai_addrlen)) == -1) {
 			perror("sender: sendto");
 			exit(1);
 		}
 
-		printf("Packet with sequence number %d sent\n", x);
-
-
+		sprintf(data, "Packet with sequence number %d sent\n", x);
+		printf("%s", data);
+		fputs(data, fp);
 		// wait for the acknowledgement
 		struct timeval tv_temp = tv;
 		struct timeval tv_temp2;
@@ -178,7 +183,9 @@ int main(int argc, char *argv[]) {
 		}
 		else if ( ret == 0 ) {
 			//timeout
-			printf("Restransmission timer of %d packet expired", x);
+			sprintf(data, "Restransmission timer of %d packet expired", x);
+			printf("%s", data);
+			fputs(data, fp);
 		}
 		else if ( FD_ISSET( sockfd, &read_fds)) {
 			
@@ -195,12 +202,16 @@ int main(int argc, char *argv[]) {
 			// check if this is the acknowledgement of the recently sent packet
 			if(seq == x+1) {
 				x++;
-				printf("ACK of %d packet received", x);
+				sprintf(data, "ACK of %d packet received", x);
+				printf("%s", data);
+				fputs(data, fp);
 			}
 			else {
 				tv_temp.tv_sec = tv_temp.tv_sec- time_taken;
 				goto label;
-				printf("ACK of %d received and ignored", seq);
+				sprintf(data, "ACK of %d received and ignored", seq);
+				printf("%s", data);
+				fputs(data, fp);
 			}
 		}
 	}
@@ -208,4 +219,5 @@ int main(int argc, char *argv[]) {
 	freeaddrinfo(servinfo_sender);
 	close(sockfd);
 	close(sockfd_sender);
+	fclose(fp);
 } 

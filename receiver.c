@@ -24,6 +24,14 @@ int count_digits(int x) {
 
 int main(int argc, char* argv[]) {
 
+	FILE *fp;
+	fp = fopen("receiver.txt", "w") ;
+
+	if ( fp == NULL ) { 
+		printf( "receiver.txt file failed to open." ) ; 
+	}
+
+	char data[1000];
 	// handling the command line arguments
 	if(argc!=4) {
 		printf("Usage: receiver.c <ReceiverPort> <SenderPort> <PacketDropProbability>\n");
@@ -119,8 +127,9 @@ int main(int argc, char* argv[]) {
 		// printf("%s\n", sequence);
 		int seq = atoi(sequence);
 
-		printf("Packet with sequence number %d received\n", seq);
-
+		sprintf(data, "Packet with sequence number %d received\n", seq);
+		printf("%s", data);
+		fputs(data, fp);
 
 		// check if the sequence received doesn't match the sequence expected
 		if(seq != x) {
@@ -133,7 +142,9 @@ int main(int argc, char* argv[]) {
 				perror("receiver: sendto");
 				exit(1);
 			}
-			printf("Package with sequence number %d dropped (not equal to expected seq no. %d) and ACK for %d sent\n", seq, x, x);
+			sprintf(data, "Package with sequence number %d dropped (not equal to expected seq no. %d) and ACK for %d sent\n", seq, x, x);
+			printf("%s", data);
+			fputs(data, fp);
 		}
 		else {
 			double random_value;
@@ -151,16 +162,21 @@ int main(int argc, char* argv[]) {
 					perror("receiver: sendto");
 						exit(1);
 				}
-				printf("Packet with sequence number %d accepted and ACK for %d sent\n", seq, x);
+				sprintf(data, "Packet with sequence number %d accepted and ACK for %d sent\n", seq, x);
+				printf("%s", data);
+				fputs(data, fp);
 			}
 			else {
 				// drop the packet
-				printf("Package with sequence number %d dropped intentionally\n", seq);
+				sprintf(data, "Package with sequence number %d dropped intentionally\n", seq);
+				printf("%s", data);
+				fputs(data, fp);
 			}
 		}
 	}
 	close(sockfd);
 	close(sockfd_sender);
 	freeaddrinfo(servinfo_sender);
+	fclose(fp);
 }
 
