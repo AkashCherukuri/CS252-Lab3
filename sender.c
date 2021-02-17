@@ -21,6 +21,15 @@ https://www.codeproject.com/Questions/557011/UdjustplusUDPplussocketplusdataplus
 
 #define MAXBUFLEN 100
 
+int count_digits(int x) {
+	int count =0;
+	while(x!=0) {
+		x = x/10;
+		count++;
+	}
+	return count;
+}
+
 int main(int argc, char *argv[]) {
 
 	//handling the command line arguments
