@@ -126,10 +126,11 @@ int main(int argc, char* argv[]) {
 		sequence[numbytes-7] = '\0';
 		// printf("%s\n", sequence);
 		int seq = atoi(sequence);
-
 		sprintf(data, "Packet with sequence number %d received\n", seq);
-		printf("%s", data);
+		if (seq!=0) printf("%s", data);
 		fputs(data, fp);
+
+		if(seq == 0) break;
 
 		// check if the sequence received doesn't match the sequence expected
 		if(seq != x) {
@@ -150,7 +151,7 @@ int main(int argc, char* argv[]) {
 			srand(time(NULL));
 			double random_value;
 			random_value = (double)rand()/(double)RAND_MAX;
-			printf("%f", random_value);
+			//printf("%f", random_value);
 			if(random_value >= PacketDropProbability) {
 				// Packet received successfully and send an acknowledgement with next sequence number
 				int sent_bytes;
@@ -162,13 +163,13 @@ int main(int argc, char* argv[]) {
 					perror("receiver: sendto");
 						exit(1);
 				}
-				sprintf(data, "Packet with sequence number %d accepted and ACK for %d sent\n", seq, x);
+				sprintf(data, "Packet with sequence number %d accepted and ACK for %d sent\n\n", seq, x);
 				printf("%s", data);
 				fputs(data, fp);
 			}
 			else {
 				// drop the packet
-				sprintf(data, "Package with sequence number %d dropped intentionally\n", seq);
+				sprintf(data, "Packet with sequence number %d dropped to simulate packet loss\n\n", seq);
 				printf("%s", data);
 				fputs(data, fp);
 			}

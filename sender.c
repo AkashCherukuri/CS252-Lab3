@@ -138,7 +138,7 @@ int main(int argc, char *argv[]) {
 			exit(1);
 		}
 
-		sprintf(data, "Packet with sequence number %d sent\n", x);
+		sprintf(data, "Packet with sequence number %d sent\n\n", x);
 		printf("%s", data);
 		fputs(data, fp);
 		// wait for the acknowledgement
@@ -147,23 +147,23 @@ int main(int argc, char *argv[]) {
 		tv.tv_sec = RetranmissionTimer;
 		tv.tv_usec = 0;
 		setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
-		clock_t t;
+		time_t begin;
 		double time_taken;
 		char sequence[100];
 		int seq;
 		double total_time_taken = 0;
 		label: 
-   	t = clock();
-   	printf("hi\n");
-
+   	// printf("hi\n");
+	time(&begin);		
    	numbytes = recvfrom(sockfd, buf, MAXBUFLEN-1, 0, (struct sockaddr *)&sender_address, &addr_len);
-		printf("%zd\n", numbytes);;
+		// printf("%zd\n", numbytes);;
 
-		printf("bye\n");
-		t = clock() - t;
-   	time_taken = ((double)t)/CLOCKS_PER_SEC;
+		// printf("bye\n");
+		time_t end;
+		time(&end);
+		time_taken = difftime(end,begin);
    	total_time_taken += time_taken;
-   	printf("total_timetaken:%f\n", total_time_taken);
+   	// printf("total_timetaken:%f\n", total_time_taken);
    	if(numbytes < 0) {
 			continue;
 		}
@@ -176,12 +176,12 @@ int main(int argc, char *argv[]) {
 			// check if this is the acknowledgement of the recently sent packet
 			if(seq == x+1) {
 				x++;
-				sprintf(data, "ACK of %d packet received", x);
+				sprintf(data, "ACK of %d packet received\n", x);
 				printf("%s", data);
 				fputs(data, fp);
 			}
 			else {
-				sprintf(data, "ACK of %d received and ignored", seq);
+				sprintf(data, "ACK of %d received and ignored\n", seq);
 				printf("%s", data);
 				fputs(data, fp);
 				struct timeval tv_temp;
@@ -192,6 +192,16 @@ int main(int argc, char *argv[]) {
 			}
 		}
 	}
+
+	int sent_bytes;
+		char m[20];
+		sprintf(m, "Packet:%d", 0);
+		m[7+count_digits(1)] = '\0';
+		if((sent_bytes = sendto(sockfd_sender, m, strlen(m), 0, q->ai_addr, q->ai_addrlen)) == -1) {
+			perror("sender: sendto");
+			exit(1);
+		}
+
 
 	// close the sockets
 	freeaddrinfo(servinfo_sender);
