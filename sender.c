@@ -176,23 +176,26 @@ int main(int argc, char *argv[]) {
 
 		t = clock() - t;
    	time_taken = ((double)t)/CLOCKS_PER_SEC;
-
+   	printf("Time taken for receiving%f\n", time_taken);
 		if( ret < 0 ) {
 			perror("select");
 			exit(1);
 		}
 		else if ( ret == 0 ) {
 			//timeout
-			sprintf(data, "Restransmission timer of %d packet expired", x);
+			sprintf(data, "Restransmission timer of packet %d expired", x);
 			printf("%s", data);
 			fputs(data, fp);
 		}
 		else if ( FD_ISSET( sockfd, &read_fds)) {
-			
+			t = clock();
 			if((numbytes = recvfrom(sockfd, buf, MAXBUFLEN-1, 0, (struct sockaddr *)&sender_address, &addr_len)) == -1) {
 			perror("recvfrom");
 			exit(1);
 			}
+			t = clock() -t ;
+			time_taken = ((double)t)/CLOCKS_PER_SEC;
+   		printf("Time taken for receiving2%f\n", time_taken);
 
 			// parse the received message and check the sequence number
 			strncpy(sequence, buf+15, numbytes-15);
@@ -215,6 +218,7 @@ int main(int argc, char *argv[]) {
 			}
 		}
 	}
+
 	// close the sockets
 	freeaddrinfo(servinfo_sender);
 	close(sockfd);
