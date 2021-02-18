@@ -86,16 +86,6 @@ int main(int argc, char *argv[]) {
 	int rv;
 
 
-	//create a fd_set consisting of sockfd
-	fd_set master;
-	fd_set read_fds;
-	
-
-	// Time data structure
-	struct timeval tv;
-	fd_set readfds;
-
-
 	// initialize the receiver sockets
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
@@ -127,18 +117,12 @@ int main(int argc, char *argv[]) {
 	}
 	freeaddrinfo(servinfo); 
 
-	FD_ZERO(&read_fds);
-	FD_ZERO(&master);
-	FD_SET(sockfd, &master);
-	tv.tv_sec = RetranmissionTimer;
-	tv.tv_usec = 0;
-	read_fds = master;
 	// initialize the packet sequence
 	int x = 1;
 
 	struct sockaddr_storage sender_address;
 	socklen_t addr_len = sizeof(sender_address);
-	int numbytes;
+	ssize_t numbytes;
 	char buf[MAXBUFLEN];
 
 
@@ -158,45 +142,32 @@ int main(int argc, char *argv[]) {
 		printf("%s", data);
 		fputs(data, fp);
 		// wait for the acknowledgement
-		struct timeval tv_temp = tv;
-		struct timeval tv_temp2;
-
+		// set timeout on socket
+		struct timeval tv;
+		tv.tv_sec = RetranmissionTimer;
+		tv.tv_usec = 0;
+		setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
 		clock_t t;
-		int ret;
 		double time_taken;
 		char sequence[100];
 		int seq;
+		double total_time_taken = 0;
 		label: 
    	t = clock();
-   	tv_temp2 = tv_temp;
+   	printf("hi\n");
 
-		ret = select(sockfd+1, &readfds, NULL, NULL, &tv_temp);
+   	numbytes = recvfrom(sockfd, buf, MAXBUFLEN-1, 0, (struct sockaddr *)&sender_address, &addr_len);
+		printf("%zd\n", numbytes);;
 
-		tv_temp = tv_temp2;
-
+		printf("bye\n");
 		t = clock() - t;
    	time_taken = ((double)t)/CLOCKS_PER_SEC;
-   	printf("Time taken for receiving%f\n", time_taken);
-		if( ret < 0 ) {
-			perror("select");
-			exit(1);
+   	total_time_taken += time_taken;
+   	printf("total_timetaken:%f\n", total_time_taken);
+   	if(numbytes < 0) {
+			continue;
 		}
-		else if ( ret == 0 ) {
-			//timeout
-			sprintf(data, "Restransmission timer of packet %d expired", x);
-			printf("%s", data);
-			fputs(data, fp);
-		}
-		else if ( FD_ISSET( sockfd, &read_fds)) {
-			t = clock();
-			if((numbytes = recvfrom(sockfd, buf, MAXBUFLEN-1, 0, (struct sockaddr *)&sender_address, &addr_len)) == -1) {
-			perror("recvfrom");
-			exit(1);
-			}
-			t = clock() -t ;
-			time_taken = ((double)t)/CLOCKS_PER_SEC;
-   		printf("Time taken for receiving2%f\n", time_taken);
-
+		else {
 			// parse the received message and check the sequence number
 			strncpy(sequence, buf+15, numbytes-15);
 			sequence[numbytes-15] = '\0';
@@ -210,11 +181,14 @@ int main(int argc, char *argv[]) {
 				fputs(data, fp);
 			}
 			else {
-				tv_temp.tv_sec = tv_temp.tv_sec- time_taken;
-				goto label;
 				sprintf(data, "ACK of %d received and ignored", seq);
 				printf("%s", data);
 				fputs(data, fp);
+				struct timeval tv_temp;
+				tv_temp.tv_sec = RetranmissionTimer-total_time_taken;
+				tv_temp.tv_usec = 0;
+				setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv_temp, sizeof tv_temp);
+				goto label;
 			}
 		}
 	}

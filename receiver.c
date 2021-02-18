@@ -147,10 +147,10 @@ int main(int argc, char* argv[]) {
 			fputs(data, fp);
 		}
 		else {
-			double random_value;
 			srand(time(NULL));
-			random_value = (double)rand()/RAND_MAX;
-
+			double random_value;
+			random_value = (double)rand()/(double)RAND_MAX;
+			printf("%f", random_value);
 			if(random_value >= PacketDropProbability) {
 				// Packet received successfully and send an acknowledgement with next sequence number
 				int sent_bytes;
