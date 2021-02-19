@@ -59,13 +59,16 @@ If the sequence number received is 0, then the operation is terminated.
 ======================================================================================================
  -->
 1. Simulate delay on local machine (optional)
+         
          sudo tc qdisc add dev lo root netem delay<Delayinmiliseconds>
 
 2. Compile and execute `receiver.c`
+         
          gcc -o rec receiver.c    
          sudo ./rec <ReceiverPort> <SenderPort> <PacketDropProbability>
 
 3. Compile and execute `sender.c`
+         
          gcc -o send sender.c    
          sudo ./send <SenderPort> <ReceiverPort> <RetransmissionTimer> <NoOfPacketsToBeSent>
 
