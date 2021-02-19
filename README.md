@@ -1,20 +1,11 @@
 # CS 252 Lab 3
-<!-- ======================================================================================================
-                                    CS252-Lab3-Assignment-Readme
-======================================================================================================
- -->
-<!-- Teammates
- -->
+
 Akash Cherukuri - 190050009    
 Aman Yadav - 190050013    
 Amit Rajaraman - 190050015    
 
 ## Description of Code
 
-<!-- ======================================================================================================
-										Description of Code
-======================================================================================================
- -->
 
 ### `sender.c`
 
@@ -36,7 +27,6 @@ with the timeout value equal to (transmission value - time taken).
 
 End of transmission is signalled to the receiver by using a unique packet. (`seq` = 0)
 
-<!-- ------------------------------------------------------------------------------------------------------ -->
 
 ### `receiver.c`
 
@@ -54,10 +44,6 @@ If the sequence number received is 0, then the operation is terminated.
 
 ## Compiling the Code
 
-<!-- ======================================================================================================
-										Compiling the Code
-======================================================================================================
- -->
 1. Simulate delay on local machine (optional)
          
          sudo tc qdisc add dev lo root netem delay<Delayinmiliseconds>
@@ -79,10 +65,6 @@ to the corresponding textfiles.
 
 ## References
 
-<!-- ======================================================================================================
-											References
-======================================================================================================
- -->
 https://www.codeproject.com/Questions/557011/UdjustplusUDPplussocketplusdataplusreceivepluswait
 https://stackoverflow.com/questions/22661300/calculate-execution-time-when-sleep-is-used
 https://stackoverflow.com/questions/6218399/how-to-generate-a-random-number-between-0-and-1
