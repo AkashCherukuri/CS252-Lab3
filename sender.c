@@ -154,7 +154,7 @@ int main(int argc, char *argv[]) {
 		double total_time_taken = 0;
 		label: 
    	// printf("hi\n");
-	time(&begin);		
+		time(&begin);		
    	numbytes = recvfrom(sockfd, buf, MAXBUFLEN-1, 0, (struct sockaddr *)&sender_address, &addr_len);
 		// printf("%zd\n", numbytes);;
 
@@ -194,13 +194,13 @@ int main(int argc, char *argv[]) {
 	}
 
 	int sent_bytes;
-		char m[20];
-		sprintf(m, "Packet:%d", 0);
-		m[7+count_digits(1)] = '\0';
-		if((sent_bytes = sendto(sockfd_sender, m, strlen(m), 0, q->ai_addr, q->ai_addrlen)) == -1) {
-			perror("sender: sendto");
-			exit(1);
-		}
+	char m[20];
+	sprintf(m, "Packet:%d", 0);
+	m[7+count_digits(1)] = '\0';
+	if((sent_bytes = sendto(sockfd_sender, m, strlen(m), 0, q->ai_addr, q->ai_addrlen)) == -1) {
+		perror("sender: sendto");
+		exit(1);
+	}
 
 
 	// close the sockets

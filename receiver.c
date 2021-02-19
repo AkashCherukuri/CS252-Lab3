@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
 				m[15+count_digits(x)] = '\0';
 				if((sent_bytes = sendto(sockfd_sender, m, strlen(m), 0, q->ai_addr, q->ai_addrlen)) == -1) {
 					perror("receiver: sendto");
-						exit(1);
+					exit(1);
 				}
 				sprintf(data, "Packet with sequence number %d accepted and ACK for %d sent\n\n", seq, x);
 				printf("%s", data);
