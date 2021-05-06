@@ -31,7 +31,7 @@ Throughputs for 20 runs:
 			sum_square="0"
 			for i in {0..19}
 			do
-				./server cubic
+				./server $tcp
 				num=$(./client $tcp | tail -n 1)
 				echo "$num" | cat >> output.txt
 				sum=$(awk '{print $1 + $2}' <<<"${sum} ${num}")
