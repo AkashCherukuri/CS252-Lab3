@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
 	for(p = servinfo; p != NULL; p = p->ai_next) {
 		// initializing the socket
 		if ((sockfd = socket(p->ai_family, p->ai_socktype,p->ai_protocol)) == -1) {
-			perror("client: socket");
+			perror("server: socket");
 			continue;
 		}
 
@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
 	    // Bind the socket to the address
 		if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
 			close(sockfd);
-	    	perror("client: bind");
+	    	perror("server: bind");
 			continue;
 		}
 		break;
@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
 
 	// If looped through all the results and were unable to connect to any
 	if(p==NULL){
-		fprintf(stderr, "client: failed to bind\n"); exit(1);
+		fprintf(stderr, "server: failed to bind\n"); exit(1);
 	}
 
 	// listen on the created socket
@@ -143,6 +143,7 @@ int main(int argc, char* argv[]) {
 	// close the file socket and the incoming connection socket
 	close(filefd);
 	close(new_fd);
+	printf("Server Done!!\n");
 
 	return 0;
 }

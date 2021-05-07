@@ -1,0 +1,21 @@
+Loss = 0.1%, delay = 10ms, tcp reno
+Throughputs for 20 runs:
+
+18134208.000000Client closed!
+
+17630304.000000Client closed!
+17890944.000000Client closed!
+18543744.000000Client closed!
+18707616.000000Client closed!
+18152928.000000Client closed!
+18626528.000000Client closed!
+18562816.000000Client closed!
+
+35156352.000000Client closed!
+36185408.000000Client closed!
+
+
+17896736.000000Client closed!
+35237440.000000Client closed!
+
+

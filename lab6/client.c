@@ -159,7 +159,7 @@ int main(int argc, char *argv[]) {
 
   	// throughput = file_size(bits) / transfer_time(secs);
   	float tp = ((float)res * 8)/(t2.tv_sec-t1.tv_sec);
-  	printf("%f\n", tp);
+  	printf("%fClient closed!\n", tp);
 	close(sockfd);
 	return 0;
 }
