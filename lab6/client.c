@@ -16,11 +16,10 @@
 #include <sys/stat.h>
 #include <netinet/tcp.h>
 #include <sys/time.h>
-
+#include <math.h>
 
 #define PORT "5678" // the port client will be connecting to
-#define MAXDATASIZE 10000 // max number of bytes we will send
-
+#define MAXDATASIZE 1500 // max number of bytes we will send
 
 // function to calculate the size of a file in bytes
 long int findSize(char file_name[])
@@ -112,10 +111,11 @@ int main(int argc, char *argv[]) {
 	}
 
   	// time structures to finally calculate the time taken to send the file
-	struct timeval t1, t2;
+	struct timeval t1, t2, t3;
 	// mark the starting time of the transmission
-	gettimeofday(&t1, NULL);
-
+	t3.tv_sec = 0;
+	t3.tv_usec = 0;
+	
 	while (1) {
 
 	    // Read data into buffer.  We may not have enough to fill up buffer, so we
@@ -134,6 +134,7 @@ int main(int argc, char *argv[]) {
 		// track of where in the buffer we are, while we decrement bytes_read
 		// to keep track of how many bytes are left to write.
 		void *buf_temp = buf;
+		gettimeofday(&t1, NULL);
 		while (bytes_read > 0) {
 			// Send the bytes to the server
 			int bytes_written = send(sockfd, buf_temp, bytes_read, 0);
@@ -145,21 +146,24 @@ int main(int argc, char *argv[]) {
 	    	bytes_read -= bytes_written;
 	    	p += bytes_written;
 		}
+		// mark the end of tranmission
+		gettimeofday(&t2, NULL);
+		t3.tv_sec += (t2.tv_sec-t1.tv_sec);
+		t3.tv_usec += (t2.tv_usec-t1.tv_usec);
 	}
-	// mark the end of tranmission
-	gettimeofday(&t2, NULL);
 
 	// calculating the size of the file
-	char file_name[] = { "recv.txt" };
-  	long int res = findSize(file_name);
-  	if (res == -1) {
-		perror("Reading file");
-	    exit(EXIT_FAILURE);
-  	}
+	// char file_name[] = { "recv.txt" };
+ //  	long int res = findSize(file_name);
+ //  	printf("%ld\n", res);
+ //  	if (res == -1) {
+	// 	perror("Reading file");
+	//     exit(EXIT_FAILURE);
+ //  	}
 
   	// throughput = file_size(bits) / transfer_time(secs);
-  	float tp = ((float)res * 8)/(t2.tv_sec-t1.tv_sec);
-  	printf("%fClient closed!\n", tp);
+  	double tp = (5*pow(10,6)*8)/(t3.tv_sec + pow(10, -6)*t3.tv_usec);
+  	printf("%f\n", tp);
 	close(sockfd);
 	return 0;
 }

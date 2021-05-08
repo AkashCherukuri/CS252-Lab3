@@ -17,6 +17,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <netinet/tcp.h>
+#include <math.h>
 
 #define PORT "5678"
 #define BACKLOG 10
@@ -143,7 +144,7 @@ int main(int argc, char* argv[]) {
 	// close the file socket and the incoming connection socket
 	close(filefd);
 	close(new_fd);
-	printf("Server Done!!\n");
+	// printf("Server Done!!\n");
 
 	return 0;
 }
