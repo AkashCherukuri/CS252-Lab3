@@ -19,12 +19,11 @@
 #include <math.h>
 
 #define PORT "5678" // the port client will be connecting to
-#define MAXDATASIZE 1500 // max number of bytes we will send
 
 int main(int argc, char *argv[]) {
 
 	int sockfd, numbytes;
-	char buf[MAXDATASIZE];
+	char buf[BUFSIZ];
 	struct addrinfo hints, *servinfo, *p;
 	int rv;
 
@@ -89,10 +88,8 @@ int main(int argc, char *argv[]) {
   // time structures to finally calculate the time taken to send the file
 	struct timeval t1, t2, t3;
 
-	// Initialize our cummulative time variable
-	t3.tv_sec = 0;
-	t3.tv_usec = 0;
-	
+	//tranmission of bits read from file starts
+	gettimeofday(&t1, NULL);
 	while (1) {
 
     // Read data into buffer.  We may not have enough to fill up buffer, so we
@@ -112,9 +109,6 @@ int main(int argc, char *argv[]) {
 		// to keep track of how many bytes are left to write.
 		void *buf_temp = buf;
 
-		//tranmission of bits read from file starts
-		gettimeofday(&t1, NULL);
-
 		while (bytes_read > 0) {
 			// Send the bytes to the server
 			int bytes_written = send(sockfd, buf_temp, bytes_read, 0);
@@ -127,14 +121,15 @@ int main(int argc, char *argv[]) {
 	    	p += bytes_written;
 		}
 
-		// mark the end of tranmission
-		gettimeofday(&t2, NULL);
 
-		// Add the time taken to the cummulative time variable t3
-		t3.tv_sec += (t2.tv_sec-t1.tv_sec);
-		t3.tv_usec += (t2.tv_usec-t1.tv_usec);
+
 	}
+	// mark the end of tranmission
+	gettimeofday(&t2, NULL);
 
+	// subtract t1 from t2 to get the time taken for tranmission
+	t3.tv_sec = (t2.tv_sec-t1.tv_sec);
+	t3.tv_usec = (t2.tv_usec-t1.tv_usec);
 
 	// throughput = file_size(bits) / transfer_time(secs);
 	double tp = (5*pow(10,6)*8)/(t3.tv_sec + pow(10, -6)*t3.tv_usec);
