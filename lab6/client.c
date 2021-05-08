@@ -1,5 +1,5 @@
 /*
-** client.c -- a stream socket client demo
+** client.c -- a stream socket client
 */
 
 #include <stdio.h>
@@ -21,29 +21,6 @@
 #define PORT "5678" // the port client will be connecting to
 #define MAXDATASIZE 1500 // max number of bytes we will send
 
-// function to calculate the size of a file in bytes
-long int findSize(char file_name[])
-{
-    // opening the file in read mode
-    FILE* fp = fopen(file_name, "r");
-  
-    // checking if the file exist or not
-    if (fp == NULL) {
-        printf("File Not Found!\n");
-        return -1;
-    }
-  
-    fseek(fp, 0L, SEEK_END);
-  
-    // calculating the size of the file
-    long int res = ftell(fp);
-  
-    // closing the file
-    fclose(fp);
-  
-    return res;
-}
-
 int main(int argc, char *argv[]) {
 
 	int sockfd, numbytes;
@@ -61,10 +38,10 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	// proto to pass the TCP varient we are using to setsockopt
+	// proto to pass the TCP varient we are using to setsockopt provided as command line argument
 	char proto[256];
 	strcpy(proto, argv[1]);
-  	socklen_t len = sizeof(proto);
+  socklen_t len = sizeof(proto);
 
 
 	// loop through all the results and connect to the first we can
@@ -77,16 +54,15 @@ int main(int argc, char *argv[]) {
 		}
 
 		// setting the TCP variant to the one provided in command line arguments
-	    if (setsockopt(sockfd, IPPROTO_TCP, TCP_CONGESTION, proto, len) != 0)
-	    {
-	        perror("setsockopt");
-	        continue;
-	    }
+    if (setsockopt(sockfd, IPPROTO_TCP, TCP_CONGESTION, proto, len) != 0){
+      perror("client: setsockopt");
+      continue;
+    }
 
 	    // connect to the socket created
 		if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
 			close(sockfd);
-	    	perror("client: connect");
+	    perror("client: connect");
 			continue;
 		}
 		break;
@@ -110,19 +86,20 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
-  	// time structures to finally calculate the time taken to send the file
+  // time structures to finally calculate the time taken to send the file
 	struct timeval t1, t2, t3;
-	// mark the starting time of the transmission
+
+	// Initialize our cummulative time variable
 	t3.tv_sec = 0;
 	t3.tv_usec = 0;
 	
 	while (1) {
 
-	    // Read data into buffer.  We may not have enough to fill up buffer, so we
-	    // store how many bytes were actually read in bytes_read.
-	    int bytes_read = read(filefd, buf, sizeof(buf));
-	    if (bytes_read == 0) // We're done reading from the file
-	        break;
+    // Read data into buffer.  We may not have enough to fill up buffer, so we
+    // store how many bytes were actually read in bytes_read.
+    int bytes_read = read(filefd, buf, sizeof(buf));
+    if (bytes_read == 0) // We're done reading from the file
+        break;
 	    
 		if (bytes_read < 0) {
 			perror("Reading file");
@@ -134,36 +111,34 @@ int main(int argc, char *argv[]) {
 		// track of where in the buffer we are, while we decrement bytes_read
 		// to keep track of how many bytes are left to write.
 		void *buf_temp = buf;
+
+		//tranmission of bits read from file starts
 		gettimeofday(&t1, NULL);
+
 		while (bytes_read > 0) {
 			// Send the bytes to the server
 			int bytes_written = send(sockfd, buf_temp, bytes_read, 0);
 			if (bytes_written <= 0) {
 				perror("Sending bytes");
-	      		exit(EXIT_FAILURE);
+	      exit(EXIT_FAILURE);
 			}
 
 	    	bytes_read -= bytes_written;
 	    	p += bytes_written;
 		}
+
 		// mark the end of tranmission
 		gettimeofday(&t2, NULL);
+
+		// Add the time taken to the cummulative time variable t3
 		t3.tv_sec += (t2.tv_sec-t1.tv_sec);
 		t3.tv_usec += (t2.tv_usec-t1.tv_usec);
 	}
 
-	// calculating the size of the file
-	// char file_name[] = { "recv.txt" };
- //  	long int res = findSize(file_name);
- //  	printf("%ld\n", res);
- //  	if (res == -1) {
-	// 	perror("Reading file");
-	//     exit(EXIT_FAILURE);
- //  	}
 
-  	// throughput = file_size(bits) / transfer_time(secs);
-  	double tp = (5*pow(10,6)*8)/(t3.tv_sec + pow(10, -6)*t3.tv_usec);
-  	printf("%f\n", tp);
+	// throughput = file_size(bits) / transfer_time(secs);
+	double tp = (5*pow(10,6)*8)/(t3.tv_sec + pow(10, -6)*t3.tv_usec);
+	printf("%f\n", tp);
 	close(sockfd);
 	return 0;
 }

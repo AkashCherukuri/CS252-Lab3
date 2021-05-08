@@ -1,5 +1,5 @@
 /*
-** server.c -- a stream socket server demo
+** server.c -- a stream socket server
 */
 
 #include <stdio.h>
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	// proto to pass the TCP varient we are using to setsockopt
+	// proto to pass the TCP varient we are using to setsockopt provided as command line argument
 	char proto[256];
 	strcpy(proto, argv[1]);
 	socklen_t len = sizeof(proto);
@@ -68,11 +68,11 @@ int main(int argc, char* argv[]) {
 		}
 
 		// setting the TCP variant to the one provided in command line arguments
-	    if (setsockopt(sockfd, IPPROTO_TCP, TCP_CONGESTION, proto, len) != 0)
-	    {
-	        perror("setsockopt");
-	        continue;
-	    }
+    if (setsockopt(sockfd, IPPROTO_TCP, TCP_CONGESTION, proto, len) != 0)
+    {
+        perror("setsockopt");
+        continue;
+    }
 
 	    // Bind the socket to the address
 		if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
@@ -124,6 +124,7 @@ int main(int argc, char* argv[]) {
 	if (new_fd == -1) {
     	perror("accept");
 	}
+
 	// we don't need the listener anymore
 	close(sockfd);
 
@@ -144,7 +145,6 @@ int main(int argc, char* argv[]) {
 	// close the file socket and the incoming connection socket
 	close(filefd);
 	close(new_fd);
-	// printf("Server Done!!\n");
 
 	return 0;
 }

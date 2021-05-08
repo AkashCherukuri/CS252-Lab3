@@ -17,9 +17,7 @@ tcps=('reno' 'cubic')
 for loss in "${losses[@]}"; do
 	for delay in "${delays[@]}"; do
 		for tcp in "${tcps[@]}"; do
-			# setting the loss and delay
 
-			# TCP cubic
 			echo "Loss = $loss, delay = $delay, tcp $tcp
 Throughputs for 20 runs:
 " | cat >> output.txt
