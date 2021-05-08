@@ -31,6 +31,7 @@ After all the experiments are done, plots are created and saved in the same fold
 First compile the `server.c` an `receiver.c` using the following commands:
 
 `gcc -o client client.c`
+
 `gcc -o server server.c`
 
 Now you can set the loss and delay in the loop back interface using the following command:
@@ -40,6 +41,7 @@ Now you can set the loss and delay in the loop back interface using the followin
 Now run the server and then the client both of which take the TCP variant as the command line argument using the following command:
 
 `./server <tcp variant>`
+
 `./client <tcp variant>`
 
 `<tcp variant>` can be reno or cubic.
